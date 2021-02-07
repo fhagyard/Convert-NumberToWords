@@ -1,4 +1,4 @@
-﻿Function Convert-NumberToWords {
+Function Convert-NumberToWords {
     Param(
         [Parameter(Mandatory=$True,ValueFromPipeline=$True,Position=0)]
         [ValidateRange(-999999999999999,999999999999999)]
@@ -98,54 +98,45 @@
             # Reverse array so that each thousandth falls to the same index
             [array]::Reverse($MainArray)
 
-            # Set flags for tracking whether each thousandth is empty
-            $InitialEmpty,$ThousandEmpty,$MillionEmpty,$BillionEmpty,$TrillionEmpty = $True,$True,$True,$True,$True
-
-            # Set flag if initial word not empty and get the value
-            If ($MainArray[0] -ne "000") {
-                
-                $InitialEmpty = $False
-                $InitialWord = Get-Word -StrNumber $MainArray[0]
-
-                If ($MainArray[0][0] -eq "0") {$SuffixWord = "And $InitialWord"}
-                Else {$SuffixWord = $InitialWord}
-            }
+            # Array to add words into
+            $FinalWordArray = @()
 
             # Get words for each thousandth
             Switch ($ArrayCount) {
-                {$_ -gt 1} {
-                    If ($MainArray[1] -ne "000") {
-                        $ThousandEmpty = $False
-                        $ThousandWord = Get-Word -StrNumber $MainArray[1]
+                {$_ -gt 4} {
+                    $TrillionWord = Get-Word -StrNumber $MainArray[4]
+                    $FinalWordArray += "$TrillionWord Trillion"
+                }
+                {$_ -gt 3} {
+                    If ($MainArray[3] -ne "000") {
+                        $BillionWord = Get-Word -StrNumber $MainArray[3]
+                        $FinalWordArray += "$BillionWord Billion"
                     }
                 }
                 {$_ -gt 2} {
                     If ($MainArray[2] -ne "000") {
-                        $MillionEmpty = $False
                         $MillionWord = Get-Word -StrNumber $MainArray[2]
+                        $FinalWordArray += "$MillionWord Million"
                     }
                 }
-                {$_ -gt 3} {
-                    If ($MainArray[3] -ne "000") {
-                        $BillionEmpty = $False
-                        $BillionWord = Get-Word -StrNumber $MainArray[3]
+                {$_ -gt 1} {
+                    If ($MainArray[1] -ne "000") {
+                        $ThousandWord = Get-Word -StrNumber $MainArray[1]
+                        $FinalWordArray += "$ThousandWord Thousand"
                     }
                 }
-                {$_ -gt 4} {
-                    $TrillionEmpty = $False
-                    $TrillionWord = Get-Word -StrNumber $MainArray[4]
+                {$True} {
+                    If ($MainArray[0] -ne "000") {
+
+                        $InitialWord = Get-Word -StrNumber $MainArray[0]
+
+                        If ($MainArray[0][0] -eq "0") {$SuffixWord = "And $InitialWord"}
+                        Else {$SuffixWord = $InitialWord}
+
+                        $FinalWordArray += "$SuffixWord"
+                    }            
                 }
             }
-
-            # Create an empty array to add words into
-            $FinalWordArray = @()
-
-            # Add each word to array
-            If (!$TrillionEmpty) {$FinalWordArray += "$TrillionWord Trillion"}
-            If (!$BillionEmpty) {$FinalWordArray += "$BillionWord Billion"}
-            If (!$MillionEmpty) {$FinalWordArray += "$MillionWord Million"}
-            If (!$ThousandEmpty) {$FinalWordArray += "$ThousandWord Thousand"}
-            If (!$InitialEmpty) {$FinalWordArray += "$SuffixWord"}
 
             # Join by whitespace to final word
             $FinalWord = $FinalWordArray -join " "
